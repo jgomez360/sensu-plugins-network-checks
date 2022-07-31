@@ -5,6 +5,17 @@
 [![Test Coverage](https://codeclimate.com/github/sensu-plugins/sensu-plugins-network-checks/badges/coverage.svg)](https://codeclimate.com/github/sensu-plugins/sensu-plugins-network-checks)
 [![Dependency Status](https://gemnasium.com/sensu-plugins/sensu-plugins-network-checks.svg)](https://gemnasium.com/sensu-plugins/sensu-plugins-network-checks)
 
+## Building New Release
+To build new release of sensu-plugins-network-checks
+```
+git clone https://github.com/sensu/sensu-go-bonsai-asset.git bonsai
+```
+modify ./bonsai/ruby-runtime/build-ruby-plugin-assets.sh 'platforms' for target (debian)
+```
+export GITHUB_TOKEN=<token>
+./bonsai/ruby-runtime/build-ruby-plugin-assets.sh sensu-plugins-network-checks jgomez360/sensu-plugins-network-checks <tag> <tag>
+```
+
 ## Sensu Plugins Network Checks Plugin
 
 - [Overview](#overview)

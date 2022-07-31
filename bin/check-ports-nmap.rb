@@ -6,7 +6,8 @@
 #
 # DESCRIPTION:
 #   Fetch port status using nmap. This check is good for catching bad network ACLs
-#   or service down events for network resources.
+#   or service down events for network resources. All ports are TCP SYN scanned.
+#   Extra ports can be specified for UDP scans.
 #
 # OUTPUT:
 #   plain text
@@ -19,7 +20,7 @@
 #   nmap package
 #
 # USAGE:
-#   $ ./check-ports-nmap.rb --host some_server --ports 5671,5672 --level crit
+#   $ ./check-ports-nmap.rb --host some_server --open_ports 22,8080 --udp_ports 53 --level crit
 #
 # NOTES:
 #   #YELLOW
@@ -43,21 +44,27 @@ class CheckPorts < Sensu::Plugin::Check::CLI
          long: '--host HOST',
          default: 'localhost'
 
-  option :ports,
-         description: 'TCP port(s) you wish to get status for',
-         short: '-t PORT,PORT...',
-         long: '--ports PORT,PORT...'
+  option :scan_ports,
+         description: 'Port(s) to scan',
+         short: '-s PORT,PORT...',
+         long: '--scan_ports PORT,PORT...'
+
+  option :open_ports,
+         description: 'Port(s) expected to be open',
+         short: '-o PORT,PORT...',
+         long: '--open_ports PORT,PORT...'
 
   option :level,
          description: 'Alert level crit(critical) or warn(warning)',
          short: '-l crit|warn',
          long: '--level crit|warn',
+         required: false,
          default: 'WARN'
 
   def run
     stdout, stderr = Open3.capture3(
       ENV,
-      "nmap -P0 -p #{config[:ports]} #{config[:host]}"
+      "nmap -Pn -p #{config[:scan_ports]} #{config[:host]}"
     )
 
     case stderr
@@ -65,14 +72,20 @@ class CheckPorts < Sensu::Plugin::Check::CLI
       critical 'cannot resolve the target hostname'
     end
 
+    open_ports_array = config[:open_ports].split(",").map(&:to_i)
+    # ok open_ports_array - CheckPorts OK: [22, 30303]
     port_checks = {}
     check_pass  = true
 
     stdout.split("\n").each do |line|
-      line.scan(/(\d+).tcp\s+(\w+)\s+(\w+)/).each do |status|
+      line.scan(/(\d+).tcp\s+(\S+)\s+(\S+)/).each do |status|
         port_checks[status[1]] ||= []
         port_checks[status[1]].push status[0]
-        check_pass = false unless status[1]['open']
+        if open_ports_array.include?(status[0].to_i)
+          check_pass = false unless status[1]['open']
+        else
+          check_pass = false if status[1]['open']
+        end
       end
     end
 
