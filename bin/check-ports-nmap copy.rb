@@ -44,7 +44,7 @@ class CheckPorts < Sensu::Plugin::Check::CLI
          long: '--host HOST',
          default: 'localhost'
 
-  option :open_ports,
+ option :open_ports,
          description: 'Port(s) expected to be open',
          short: '-o PORT,PORT...',
          long: '--open_ports PORT,PORT...'
@@ -52,8 +52,8 @@ class CheckPorts < Sensu::Plugin::Check::CLI
   option :udp_ports,
          description: 'UDP port(s) you wish to get status for',
          short: '-u PORT,PORT...',
-         long: '--udp_ports PORT,PORT...',
-         required: false,
+         long: '--udp_ports PORT,PORT...'
+         required: false
          default: ''
 
   option :level,
@@ -61,7 +61,7 @@ class CheckPorts < Sensu::Plugin::Check::CLI
          short: '-l crit|warn',
          long: '--level crit|warn',
          required: false,
-         default: 'WARN'
+         default: 'WARN',
 
   def run
     if config[:udp_ports] != ""
@@ -74,7 +74,6 @@ class CheckPorts < Sensu::Plugin::Check::CLI
         ENV,
         "nmap -Pn -sS -p- #{config[:host]}"
       )
-    end
 
     case stderr
     when /Failed to resolve/
